@@ -1,0 +1,33 @@
+<h1>Dream, Dream, Dream</h1>
+
+<div id="dreams-list">
+	<nav class="nav"></nav>
+	<div id="dreams-index"></div>
+</div>
+<div id="content"></div>
+<div id="one-dream" hidden>
+	<h4>A Dream</h4>
+</div>
+<br>
+<div id="form"></div>
+
+<script type="text/javascript">
+	$(function() {
+		var dreams = [];
+		var $listArea = $('#dreams-list');
+		var $form = $('#form');
+		var dreamsList = new DN.DreamIndexView( function(dream) {
+			new DN.DreamView($('#one-dream'), dream);
+			console.log(dream);
+		 },
+			$listArea
+		);
+		var newDream = new DN.Dream();
+		var dreamForm = new DN.DreamFormView($form, newDream, newDream.save, "Record a Dream");
+		
+		DN.Dream.callbacks.push(function (){
+			dreams = DN.Dream.all;
+		});
+		DN.Dream.fetchAll();
+	});
+</script>
