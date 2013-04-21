@@ -45,13 +45,17 @@ body {
 	}
 }
 
+.delete {
+	color: #4A0101;
+}
+
 #tag-predictions {
 	display: block;
 }
 
 #dreams-list {
 	ul {
-		list-style: katakana-iroha;
+		list-style: katakana;
 		margin-left: 20px;
 	}
 	font-size: x-large;

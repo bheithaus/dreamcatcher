@@ -1,7 +1,8 @@
 var DN = (function() {
 	function dreamToListItem(dream) {
-		return $('<li id="dream_'+ dream.id +'">'
-			+ dream.content + '</li>');
+		return $('<li>' + dream.content +
+				' <a class="delete">x</a></li>')
+				.data('id', dream.id);
 	}
 	
 	/*  Dream Model */
@@ -56,6 +57,37 @@ var DN = (function() {
 			}
 		);
 	};
+	
+	var deleteDreamFromAll = function(id) {
+		var indexToDelete = -1;
+		for (var i = 0; i < Dream.all.length; i++) {
+			if (Dream.all[i].id === id) {
+				indexToDelete = i;
+				break;
+			}
+		}
+		if (indexToDelete !== -1) {
+			Dream.all.remove(indexToDelete);
+		}
+	};
+	
+	//working here!!
+	Dream.prototype.delete = function() {
+		var that = this;
+		$.post(
+			"dreams/" + that.id,
+			{ _method: 'delete' },
+			function(deletedDream) {
+				console.log(deletedDream);
+				deleteDreamFromAll(deletedDream.id);
+				_(Dream.callbacks).each(function(callback) {
+					callback();
+				});
+			}
+			//better not be no errors!
+		);
+	};
+
 	
 	Dream.prototype.toJSON = function() {
 		return { dream: {
@@ -149,14 +181,30 @@ var DN = (function() {
 		var $oneDream = $('#one-dream');
 		
 		ul.on('click', function(event) {
+			console.log($(event.target).parent());
+			console.log($(event.target).hasClass('delete'));
 			ul.off('click');
-			var id = $(event.target).prop('id').split('_')[1];
-			that.showDreamFunc(Dream.find(id));
-			$oneDream.fadeIn(3000);
-			$oneDream.fadeOut(6000, function() {
-				//DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
-				that.bindClick(ul);
-			});
+			if ($(event.target).data('id')) {
+				var id = $(event.target).data('id');
+				that.showDreamFunc(Dream.find(id));
+				$oneDream.fadeIn(3000, function() {
+					var dreamsLastMillis = 1000;
+					setTimeout(function() {
+						$oneDream.fadeOut(6000, function() {
+							that.bindClick(ul);
+						});
+					}, dreamsLastMillis);
+				});
+			} else if ($(event.target).hasClass('delete')) {
+				//delete!
+				var doDelete = confirm("finished with this dream for now?")
+				if (doDelete) {
+					//delete
+					var id = $(event.target).parent().data('id');
+					console.log(id);
+					Dream.find(id).delete();
+				}
+			}
 		});
 	};
 	
