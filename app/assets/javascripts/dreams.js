@@ -111,7 +111,7 @@ var DN = (function() {
 		this.$element.empty()
 			.append($('<h4>Dream Details</h4>'))
 			.append(dreamContent)
-			.append($('<h4>Themes</h4>'))
+			.append($('<h4 class="inline">themes</h4>'))
 			.append(tagsList);
 			
 		this.addEditHandler();
@@ -411,7 +411,7 @@ var DN = (function() {
 		});
 
 		that.$display.empty()
-						.append($('<h4>tags</h4>'))
+						.append($('<h4 class="inline">themes</h4>'))
 						.append(ul);
 	};
 	
