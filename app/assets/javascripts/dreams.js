@@ -294,6 +294,7 @@ var DN = (function() {
 				_(Tag.callbackIndexesToRemove).each(function(indexOfCallbackToRemove) {
 					Tag.callbacks.remove(indexOfCallbackToRemove);
 				});
+				Tag.callbackIndexesToRemove = [];
 			}
 		);
 	};
