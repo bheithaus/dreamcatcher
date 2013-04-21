@@ -13,21 +13,18 @@
 
 <script type="text/javascript">
 	$(function() {
-		var dreams = [];
-		var $listArea = $('#dreams-list');
+		var $list = $('#dreams-list');
 		var $form = $('#form');
-		var dreamsList = new DN.DreamIndexView( function(dream) {
-			new DN.DreamView($('#one-dream'), dream);
-			console.log(dream);
-		 },
-			$listArea
-		);
-		var newDream = new DN.Dream();
-		var dreamForm = new DN.DreamFormView($form, newDream, newDream.save, "Record a Dream");
+		var $oneDream = $('#one-dream');
 		
-		DN.Dream.callbacks.push(function (){
-			dreams = DN.Dream.all;
-		});
+		var dreamsList = new DN.DreamIndexView( function(dream) {
+			//the function to call when a dream is clicked!
+			new DN.DreamView($oneDream, dream);
+		 },
+			$list
+		);
+		
+		DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
 		DN.Dream.fetchAll();
 	});
 </script>

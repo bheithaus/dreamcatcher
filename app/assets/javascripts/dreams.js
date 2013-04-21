@@ -46,9 +46,11 @@ var DN = (function () {
 			function (savedDream) {
 				that.id = savedDream.id;
 				Dream.all.push(that);
+				console.log(that.id);
 				
 				_(Dream.callbacks).each(function (callback) {
-					callback(savedDream);
+					console.log('calling callback!');
+					callback();
 				});
 			}
 		);
@@ -72,7 +74,7 @@ var DN = (function () {
 				that.content = updatedDream.content;
 				
 				_(Dream.callbacks).each(function (callback) {
-					callback(updatedDream);
+					callback();
 				});
 			}
 		});
@@ -92,7 +94,7 @@ var DN = (function () {
 		
 		button.on('click', function() {
 			$form.empty();
-			new DreamFormView($form, that.dream, that.dream.update, "Update Dream Details");
+			DreamFormView.newDreamForm(that.dream);
 		});
 	};
 	
@@ -109,17 +111,11 @@ var DN = (function () {
 	function DreamIndexView (showDreamFunc, element) {
 		this.$element = $(element);
 		this.installDreamsCallback(false);
-		this.showDreamFunc = showDreamFunc
+		this.showDreamFunc = showDreamFunc;
 	}
 	
-	DreamIndexView.prototype.refresh = function() {
-		var that = this;
-		that.$element.children().last().empty();
-		that.render();
-	};
-	
 	DreamIndexView.prototype.render = function() {
-		console.log(this.dreams);
+		//console.log(this.dreams);
 		var that = this;
 		that.$element.children().last().empty();
 		var ul = $('<ul id="all-dreams"></ul>')
@@ -134,22 +130,21 @@ var DN = (function () {
 		var that = this;
 		Dream.callbacks.push(function() {
 			that.dreams = Dream.all;
-			if (!loaded) {
-				that.render();
-				loaded = true;
-			}
+			that.render();
 		});
 	};
 	
 	DreamIndexView.prototype.bindClick = function (ul) {
 		var that = this;
+		var $oneDream = $('#one-dream');
+		
 		ul.on('click', function (event) {
 			ul.off('click');
-			console.log($(event.target).children());
 			var id = $(event.target).prop('id').split('_')[1];
 			that.showDreamFunc(Dream.find(id));
-			$('#one-dream').fadeIn();
-			$('#one-dream').fadeOut(4000, function() {
+			$oneDream.fadeIn();
+			$oneDream.fadeOut(4000, function() {
+				//DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
 				that.bindClick(ul);
 			});
 		});
@@ -159,30 +154,56 @@ var DN = (function () {
 		this.$element = $(element);
 		this.dream = dream;
 		this.submitAction = submitAction;
-		this.title = title;
+		this.formTitle = title;
 		this.injectForm();
 	}
+	
+	DreamFormView.prototype.reset = function() {
+		this.dream = new Dream;
+		this.formTitle = "Record a Dream";
+		this.submitAction = this.dream.save;
+		this.$element.empty();
+		this.injectForm();
+		this.installClickHandler();
+	};
+	
+	//a simple convenience method for generating an update or save form for a dream
+	DreamFormView.newDreamForm = function(dream) {
+		this.submitAction = dream.id ? dream.update : dream.save;
+		this.formTitle = dream.id ? "Update this Dream" : "Record a Dream";
+		var $form = $('#form');
+		$form.empty();
+		var dreamForm = new DN.DreamFormView($form, dream, this.submitAction, this.formTitle);
+	};
 	
 	DreamFormView.prototype.installClickHandler = function (button) {
 		var that = this;
 		
-		//MOVE THIS!!!
-		
-		Dream.callbacks.push(function (savedDream) {
-			if (savedDream) {
-				$('#new-dream-content').val('');
-				new DN.DreamFormView($('form'), newDream, newDream.save, "Record a Dream");
-				$('#all-dreams').append( $(dreamToListItem(savedDream)) );
-			}
-		});
 		$(button).on('click', function() {
 			that.dream.content = $('#new-dream-content').val();
-			that.submitAction.call(that.dream);
+			that.submitAction.call(that.dream); //save or update!
+			that.reset();
+		});
+		
+		if (this.formTitle.indexOf('Update') !== -1) {
+			this.installBlurHandler();
+		}
+	};
+	
+	DreamFormView.prototype.installBlurHandler = function() {
+		var that = this;
+		
+		$('#new-dream-content').focus(function() {
+			$('#form').on('mouseleave', function() {
+				that.reset();
+				$('#form').off('mouseleave');
+				$('#new-dream-content').off('focus');
+			});
 		});
 	};
 	
 	DreamFormView.prototype.injectForm = function () {
-		var heading = $('<h2>'+ this.title +'</h2>');
+		var heading = $('<h2 id="form-heading">'+ this.formTitle +'</h2>');
 		var submit = $('<button id="new-dream-submit">Save Dream</button>')
 		var that = this;
 		that.$element.append(heading)

@@ -11,10 +11,25 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130419161350) do
+ActiveRecord::Schema.define(:version => 20130421020426) do
+
+  create_table "dream_tags", :force => true do |t|
+    t.integer  "dream_id",   :null => false
+    t.integer  "tag_id",     :null => false
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  add_index "dream_tags", ["dream_id", "tag_id"], :name => "index_dream_tags_on_dream_id_and_tag_id", :unique => true
 
   create_table "dreams", :force => true do |t|
     t.text     "content"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "tags", :force => true do |t|
+    t.string   "content",    :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
