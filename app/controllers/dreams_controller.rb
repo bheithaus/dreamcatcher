@@ -1,10 +1,10 @@
 class DreamsController < ApplicationController
   def index
-    @dreams = Dream.includes(:dream_tags).all
+    @dreams = Dream.includes(:dream_tags, :tags).all
     
     respond_to do |format|
       format.html { render :index }
-      format.json { render :json => @dreams.to_json(include: :dream_tags) }
+      format.json { render :json => @dreams.to_json(include: :dream_tags, include: :tags) }
     end
   end
   

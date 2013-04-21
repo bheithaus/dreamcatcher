@@ -1,11 +1,4 @@
 var DN = (function() {
-	// Array Remove - By John Resig (MIT Licensed)
-	Array.prototype.remove = function(from, to) {
-	  var rest = this.slice((to || from) + 1 || this.length);
-	  this.length = from < 0 ? this.length + from : from;
-	  return this.push.apply(this, rest);
-	};
-	
 	function dreamToListItem(dream) {
 		return $('<li id="dream_'+ dream.id +'">'
 			+ dream.content + '</li>');
@@ -17,11 +10,10 @@ var DN = (function() {
 			id: null,
 			content: null
 		}, options || {});
-		console.log(params);
 		this.id = params.id;
 		this.content = params.content;
-		this.tagIds = _(params.dream_tags).map(function(dreamTag) {
-			return dreamTag.tag_id;
+		this.tags = _(params.tags).map(function(tag) {
+			return new Tag(tag);
 		});
 	}
 	
@@ -57,10 +49,8 @@ var DN = (function() {
 			function(savedDream) {
 				that.id = savedDream.id;
 				Dream.all.push(that);
-				console.log(that.tag_ids);
 				
 				_(Dream.callbacks).each(function(callback) {
-					console.log('calling callback!');
 					callback();
 				});
 			}
@@ -71,7 +61,9 @@ var DN = (function() {
 		return { dream: {
 				 id: this.id,
 			content: this.content,
-			tag_ids: this.tagIds //to save to rails server :)
+			tag_ids: _(this.tags).map(function(tag) {
+				return (tag.id);
+			}) //to save to rails server :)
 		}};
 	};
 	
@@ -112,11 +104,8 @@ var DN = (function() {
 	DreamView.prototype.injectDream = function() {
 		var tagsList = $('<ul class="tag-list"></ul>');
 		var dreamContent = $('<p>' + this.dream.content + '</p>');
-		console.log('this dreams tag ids are: ' + this.dream.tagIds );
-		console.log(this.dream.tagIds);
-		_(this.dream.tagIds).each(function(id) {
-			console.log(Tag.find(id));
-			tagsList.append('<li>'+Tag.find(id).content+'</li>');
+		_(this.dream.tags).each(function(tag) {
+			tagsList.append('<li>'+tag.content+'</li>');
 		});
 		
 		this.$element.empty()
@@ -174,9 +163,6 @@ var DN = (function() {
 	function DreamFormView (element, dream, submitAction, title) {
 		this.$element = $(element);
 		this.dream = dream;
-		this.tags = _(dream.tagIds).map(function (id) {
-			return Tag.find(id);
-		});  //this is a turrible implementation!!!
 		this.submitAction = submitAction;
 		this.formTitle = title;
 		this.injectForm();
@@ -184,7 +170,6 @@ var DN = (function() {
 	
 	DreamFormView.prototype.reset = function() {
 		this.dream = new Dream;
-		this.tags = [];//wtf this is so much extra data!!
 		this.formTitle = "Record a Dream";
 		this.submitAction = this.dream.save;
 		this.$element.empty();
@@ -227,44 +212,14 @@ var DN = (function() {
 		});
 	};
 	
-	DreamFormView.prototype.injectTags = function(tags) {
-		console.log('injecting tags');
-		var that = this;
-		var ul = $('<ul class="tag-list"></ul>');
-		_(that.tags).each(function(tag){
-			ul.append($('<li>'+ tag.content +'</li>'));
-		});
-		console.log(that.$tagDisplay);
-		
-		that.$tagDisplay.empty()
-						.append($('<h4>tags</h4>'))
-						.append(ul);
-	};
-	
-	// var that = this;
-// 	var ul = $('<ul class="tag-list"></ul>')
-// 	that.$predictionsArea.empty();
-// 	_(matches).each(function(match) {
-// 		ul.append('<li>'+ match.content +'</li>');
-// 	});
-// 	that.$predictionsArea.append(ul);
-	
 	DreamFormView.prototype.addTagToDream = function(tag) {
 		var that = this;
-		console.log('heres the tag inside AddTagToDream');
-		console.log(tag);
-		if (that.dream.tagIds == null) {
-			that.dream.tagIds = [];
-		} //make sure there is a tagIds array
-		console.log(tag.id);
-		that.dream.tagIds.push(tag.id);
-		that.tags.push(tag);
-		that.injectTags();
+		that.dream.tags.push(tag);
+		that.tagging.injectTags();
 	}
 	
 	DreamFormView.prototype.injectForm = function() {
 		var that = this;
-		console.log(that.dream);
 		//templating shtuff
 		var heading = $('<h2 id="form-heading">'+ that.formTitle +'</h2>');
 		var submit = $('<button id="new-dream-submit">Save Dream</button>');
@@ -272,22 +227,13 @@ var DN = (function() {
 						.val(that.dream.content);
 		
 		//hold onto this one, so I can inject tags below
-		this.$tagDisplay = $('<div id="tag-display"></div>');
-		var taggingInput = $('<input type="text" id="tagging">').val('Tag with a Theme');
-		var tagPredictions = $('<div id="tag-predictions"></div>');
-		
-		that.injectTags();//incase of update form
-		// do this callback when a new tagging is added to the 
-		// dream being created / edited
 
-		new Tagging(that.$tagDisplay, taggingInput, tagPredictions, that.dream, that);
-		that.$element.append(that.$tagDisplay)
-					.append(heading)
+		that.$element.append(heading)
 					.append(content)
-					.append(taggingInput)
-					.append(submit)
-					.append(tagPredictions);
+					.append(submit);
 					
+		that.tagging =  new Tagging(that);
+				
 		that.installClickHandler(submit);
 	};
 	
@@ -309,7 +255,6 @@ var DN = (function() {
 				});
 				
 				_(Tag.callbacks).each(function(callback) {
-					console.log('calling tag callback!');
 					callback();
 				});
 			}
@@ -335,7 +280,6 @@ var DN = (function() {
 	
 	Tag.prototype.save = function() {
 		var that = this;
-		console.log(that.toJSON());
 		$.post(
 			"/tags.json",
 			that.toJSON(),
@@ -344,7 +288,6 @@ var DN = (function() {
 				Tag.all.push(that);
 				
 				_(Tag.callbacks).each(function(callback, i) {
-					console.log('calling tag callback! index ' + i);
 					callback(that, i);
 				});
 				
@@ -357,16 +300,26 @@ var DN = (function() {
 	
 	Tagging.callbacks = [];
 	
-	function Tagging (display, input, predictionsArea, dream, form) {
-		this.$display = $(display);
-		this.$input = $(input);
-		this.$predictionsArea = $(predictionsArea);
-		this.dream = dream;
+	function Tagging (form) {
 		this.form = form;
+		this.dream = form.dream;
+		this.$element = form.$element;
+		this.injectTaggingArea();
 		this.installTagCallback();
 		this.installKeyListener();
 		this.installInputFocusListener();
+		this.injectTags(); //in case of an update form
 	}
+	
+	Tagging.prototype.injectTaggingArea = function() {
+		var that = this;
+		that.$display = $('<div id="tag-display"></div>');
+		that.$input = $('<input type="text" id="tagging">').val('Tag with a Theme');
+		that.$predictionsArea = $('<div id="tag-predictions"></div>');
+		that.form.$element.prepend(that.$display)
+							.append(that.$input)
+							.append(that.$predictionsArea);
+	};
 	
 	Tagging.prototype.installTagCallback = function() {
 		var that = this;
@@ -378,27 +331,13 @@ var DN = (function() {
 		Tag.fetchAll();
 	};
 	
-	Tagging.prototype.installTagAddCallbacks = function(tagg) {
-		var myForm = this.form;
-		if (!tagg.id) {
-			Tag.callbacks.push(function(tag, i) {	
-				myForm.addTagToDream(tag);
-				Tag.callbackIndexesToRemove.push(i); //haha this is whack!
-			});
-		} else {
-			console.log("should be adding tag to dream");
-			myForm.addTagToDream(tagg);
-		}	
-	};
-	
 	Tagging.prototype.installKeyListener = function() {
-		console.log('installing Key Listener');
 		var that = this;
 		var $input = that.$input;
 		
 		$input.on('keyup', function(event) {
 			var matches = that.findMatches($input.val());
-			console.log(event.keyCode);
+			// console.log(event.keyCode);
 			if (event.keyCode === 13) {
 				//enter pressed
 				var tagToAdd = matches[0];
@@ -406,10 +345,14 @@ var DN = (function() {
 					//tag does not exist, create it
 					tagToAdd = new Tag({content: $input.val()});
 					tagToAdd.save();
+					//once tag is saved and has id, add to Dream
+					Tag.callbacks.push(function(tag, i) {	
+						that.form.addTagToDream(tag);
+						Tag.callbackIndexesToRemove.push(i); //haha this is whack!
+					});
+				} else { //tag already exists, add to dream :)
+					that.form.addTagToDream(tagToAdd);
 				}
-				console.log(tagToAdd);
-				that.installTagAddCallbacks(tagToAdd);
-				// add tag to dream	
 				that.reset();
 			} else {
 				that.drawMatches(matches);
@@ -442,6 +385,35 @@ var DN = (function() {
 		this.$predictionsArea.empty();
 	};
 	
+	Tagging.prototype.findMatches = function(string) {
+		var matches = [];
+		if (string) {
+			_(this.tags).each(function(tag) {
+				if ( tag.content.indexOf(string) !== -1 ) {
+					// console.log('match found');
+					matches.push({
+						  id: tag.id, 
+					 content: tag.content
+				 	});
+				}
+			});
+		}
+		return matches;
+	};
+	
+	// Display methods
+	Tagging.prototype.injectTags = function() {
+		var that = this;
+		var ul = $('<ul class="tag-list"></ul>');
+		_(that.dream.tags).each(function(tag){
+			ul.append($('<li>'+ tag.content +'</li>'));
+		});
+
+		that.$display.empty()
+						.append($('<h4>tags</h4>'))
+						.append(ul);
+	};
+	
 	Tagging.prototype.drawMatches = function(matches) {
 		var that = this;
 		var ul = $('<ul class="tag-list"></ul>')
@@ -452,20 +424,12 @@ var DN = (function() {
 		that.$predictionsArea.append(ul);
 	};
 	
-	Tagging.prototype.findMatches = function(string) {
-		var matches = [];
-		if (string) {
-			_(this.tags).each(function(tag) {
-				if ( tag.content.indexOf(string) !== -1 ) {
-					console.log('match found');
-					matches.push({
-						  id: tag.id, 
-					 content: tag.content
-				 	});
-				}
-			});
-		}
-		return matches;
+	// Array Remove - By John Resig (MIT Licensed)
+	// thanks John!
+	Array.prototype.remove = function(from, to) {
+	  var rest = this.slice((to || from) + 1 || this.length);
+	  this.length = from < 0 ? this.length + from : from;
+	  return this.push.apply(this, rest);
 	};
 	
 	return {
