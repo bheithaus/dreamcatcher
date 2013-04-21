@@ -5,6 +5,18 @@ body {
 	background: url(clouds.jpg);
 }
 
+.nav {
+	opacity: .6;
+	background-color: lightblue;
+	text-align: right;
+	float:right;
+	margin-right: 100px;
+	padding: 3px 30px;
+	box-shadow:0px 0px 10px 3px rgba(151, 205, 222, 0.5);
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+}
+
 .container {
 	margin: 20px;
 }
@@ -45,10 +57,6 @@ body {
 	}
 }
 
-.delete {
-	color: #4A0101;
-}
-
 #tag-predictions {
 	display: block;
 }
@@ -62,6 +70,15 @@ body {
 	li {
 		cursor: pointer;
 	}
+
+	.lizzy {
+		color:black;
+		text-decoration: none;
+	}
+	.delete {
+		color: #4A0101;
+	}
+	
 	opacity: 0.8;
 	background-color: #97CDDE;
 	width: 500px;
@@ -99,6 +116,7 @@ br {
 	width: 400px;
 	float: left;
 	margin-left: 20px;
+	margin-top: 50px;
 	box-shadow:0px 0px 10px 10px rgba(207, 224, 230, 0.3);
 	-moz-border-radius: 15px;
 	border-radius: 15px;

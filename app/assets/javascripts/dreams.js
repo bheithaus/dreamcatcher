@@ -1,7 +1,8 @@
 var DN = (function() {
 	function dreamToListItem(dream) {
-		return $('<li>' + dream.content +
-				' <a class="delete">x</a></li>')
+		return $('<li><a class="delete">x</a> <a class="lizzy" href="#">'
+				+ dream.content +
+				'</a></li>')
 				.data('id', dream.id);
 	}
 	
@@ -184,8 +185,8 @@ var DN = (function() {
 			console.log($(event.target).parent());
 			console.log($(event.target).hasClass('delete'));
 			ul.off('click');
-			if ($(event.target).data('id')) {
-				var id = $(event.target).data('id');
+			var id = $(event.target).parent().data('id')
+			if (id) {
 				that.showDreamFunc(Dream.find(id));
 				$oneDream.fadeIn(3000, function() {
 					var dreamsLastMillis = 1000;
