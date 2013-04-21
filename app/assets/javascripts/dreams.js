@@ -99,26 +99,17 @@ var DN = (function() {
 		that.injectDream();
 	}
 	
-	DreamView.prototype.toHTML = function() {
-
-		
-		
-		return $('<div></div>').append()
-	}
-	
-	DreamView.prototype.addEditButtonHandler = function(button) {
+	DreamView.prototype.addEditHandler = function() {
 		var $form = $('#form')
 		var that = this;
 		
-		button.on('click', function() {
+		that.$element.on('click', function() {
 			$form.empty();
 			DreamFormView.newDreamForm(that.dream);
 		});
 	};
 	
 	DreamView.prototype.injectDream = function() {
-		var editButton = $('<button id="dream_'
-			+ this.dream.id +'">Edit</button>');
 		var tagsList = $('<ul class="tag-list"></ul>');
 		var dreamContent = $('<p>' + this.dream.content + '</p>');
 		console.log('this dreams tag ids are: ' + this.dream.tagIds );
@@ -131,11 +122,10 @@ var DN = (function() {
 		this.$element.empty()
 			.append($('<h4>Dream Details</h4>'))
 			.append(dreamContent)
-			.append(editButton)
 			.append($('<h4>Themes</h4>'))
 			.append(tagsList);
 			
-		this.addEditButtonHandler(editButton);
+		this.addEditHandler();
 	};
 	
 	/* Dream Index */
@@ -174,7 +164,7 @@ var DN = (function() {
 			var id = $(event.target).prop('id').split('_')[1];
 			that.showDreamFunc(Dream.find(id));
 			$oneDream.fadeIn();
-			$oneDream.fadeOut(4000, function() {
+			$oneDream.fadeOut(6000, function() {
 				//DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
 				that.bindClick(ul);
 			});
@@ -308,6 +298,8 @@ var DN = (function() {
 	
 	Tag.all = [];
 	Tag.callbacks = [];
+	Tag.callbackIndexesToRemove = [];
+	
 	Tag.fetchAll = function() {
 		$.getJSON(
 			"/tags.json",
@@ -351,9 +343,13 @@ var DN = (function() {
 				that.id = savedTag.id;
 				Tag.all.push(that);
 				
-				_(Tag.callbacks).each(function(callback) {
-					console.log('calling tag callback!');
-					callback(that);
+				_(Tag.callbacks).each(function(callback, i) {
+					console.log('calling tag callback! index ' + i);
+					callback(that, i);
+				});
+				
+				_(Tag.callbackIndexesToRemove).each(function(indexOfCallbackToRemove) {
+					Tag.callbacks.remove(indexOfCallbackToRemove);
 				});
 			}
 		);
@@ -374,7 +370,8 @@ var DN = (function() {
 	
 	Tagging.prototype.installTagCallback = function() {
 		var that = this;
-				
+		
+		Tag.callbacks = [];
 		Tag.callbacks.push(function() {
 			that.tags = Tag.all;
 		});
@@ -384,13 +381,13 @@ var DN = (function() {
 	Tagging.prototype.installTagAddCallbacks = function(tagg) {
 		var myForm = this.form;
 		if (!tagg.id) {
-			Tag.callbacks.push(function(tag) {	
+			Tag.callbacks.push(function(tag, i) {	
 				myForm.addTagToDream(tag);
+				Tag.callbackIndexesToRemove.push(i); //haha this is whack!
 			});
 		} else {
-			Tagging.callbacks.push(function(tag) {	
-				myForm.addTagToDream(tag);
-			});
+			console.log("should be adding tag to dream");
+			myForm.addTagToDream(tagg);
 		}	
 	};
 	
@@ -443,7 +440,6 @@ var DN = (function() {
 	Tagging.prototype.reset = function(){
 		this.$input.val('');
 		this.$predictionsArea.empty();
-		this.tags = [];
 	};
 	
 	Tagging.prototype.drawMatches = function(matches) {
