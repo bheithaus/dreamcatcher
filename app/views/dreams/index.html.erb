@@ -6,9 +6,10 @@
 </div>
 <div id="content"></div>
 <div id="one-dream" hidden>
-	<h4>A Dream</h4>
 </div>
+
 <br>
+
 <div id="form"></div>
 
 <script type="text/javascript">
@@ -26,5 +27,6 @@
 		
 		DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
 		DN.Dream.fetchAll();
+		DN.Tag.fetchAll();
 	});
 </script>
