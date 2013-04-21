@@ -15,11 +15,29 @@ body {
 
 .tag-list {
 	list-style: none;
+	background-color: #95B2BA;
+	box-shadow:0px 0px 10px 3px rgba(151, 205, 222, 0.5);
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	padding: 10px;
 	li {
 		display: inline;
 		margin-left: 5px;
 		padding: 2px 7px;
-		
+		background-color: #97CDDE;
+		box-shadow:0px 0px 10px 3px rgba(151, 205, 222, 0.5);
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+}
+
+.matches-list {
+	list-style: none;
+	li {
+		display: inline;
+		margin-left: 5px;
+		margin-bottom: 3px;
+		padding: 2px 7px;
 		background-color: #97CDDE;
 		box-shadow:0px 0px 10px 3px rgba(151, 205, 222, 0.5);
 		-moz-border-radius: 5px;
@@ -71,7 +89,7 @@ br {
 }
 
 #one-dream {
-	opacity: 0.7;
+	opacity: 0.9;
 	background-color: #CFE0E6;
 	padding: 20px;
 	width: 400px;

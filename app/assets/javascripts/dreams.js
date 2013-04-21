@@ -152,7 +152,7 @@ var DN = (function() {
 			ul.off('click');
 			var id = $(event.target).prop('id').split('_')[1];
 			that.showDreamFunc(Dream.find(id));
-			$oneDream.fadeIn();
+			$oneDream.fadeIn(3000);
 			$oneDream.fadeOut(6000, function() {
 				//DN.DreamFormView.newDreamForm(new DN.Dream()); //make a new dream form
 				that.bindClick(ul);
@@ -389,15 +389,18 @@ var DN = (function() {
 	Tagging.prototype.findMatches = function(string) {
 		var matches = [];
 		if (string) {
-			_(this.tags).each(function(tag) {
-				if ( tag.content.indexOf(string) !== -1 ) {
-					// console.log('match found');
-					matches.push({
-						  id: tag.id, 
-					 content: tag.content
-				 	});
+			var tag;
+			for (var i = 0; i < this.tags.length; i++) {
+				tag = this.tags[i];				
+				if (matches.length === 3) {
+					// console.log('finished early');
+					return matches;
 				}
-			});
+				if ( tag.content.indexOf(string) == 0 ) {
+					// console.log('match found');
+					matches.push(tag);
+				}
+			}
 		}
 		return matches;
 	};
@@ -417,7 +420,7 @@ var DN = (function() {
 	
 	Tagging.prototype.drawMatches = function(matches) {
 		var that = this;
-		var ul = $('<ul class="tag-list"></ul>')
+		var ul = $('<ul class="matches-list"></ul>')
 		that.$predictionsArea.empty();
 		_(matches).each(function(match) {
 			ul.append('<li>'+ match.content +'</li>');
