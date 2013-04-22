@@ -186,6 +186,17 @@ var DN = (function() {
 			console.log($(event.target).hasClass('delete'));
 			ul.off('click');
 			var id = $(event.target).parent().data('id')
+			if ($(event.target).hasClass('delete')) {
+				//delete!
+				var doDelete = confirm("finished with this dream for now?")
+				if (doDelete) {
+					//delete
+					var id = $(event.target).parent().data('id');
+					console.log(id);
+					Dream.find(id).delete();
+				}
+				return;
+			}		
 			if (id) {
 				that.showDreamFunc(Dream.find(id));
 				$oneDream.fadeIn(3000, function() {
@@ -196,15 +207,6 @@ var DN = (function() {
 						});
 					}, dreamsLastMillis);
 				});
-			} else if ($(event.target).hasClass('delete')) {
-				//delete!
-				var doDelete = confirm("finished with this dream for now?")
-				if (doDelete) {
-					//delete
-					var id = $(event.target).parent().data('id');
-					console.log(id);
-					Dream.find(id).delete();
-				}
 			}
 		});
 	};
